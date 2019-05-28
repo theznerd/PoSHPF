@@ -73,6 +73,9 @@ if($MediaResources.Count -gt 0){
     {
         $xml = ((Get-Variable -Name "xaml$($v)").Value) # Load the XML
 
+        # add the resources needed for strings
+        $xml.DocumentElement.SetAttribute("xmlns:sys","clr-namespace:System;assembly=System")
+
         # if the document doesn't already have a "Window.Resources" create it
         if($null -eq ($xml.DocumentElement.'Window.Resources')){ 
             $fragment = "<Window.Resources>" 
@@ -82,8 +85,11 @@ if($MediaResources.Count -gt 0){
         # Add each StaticResource with the key of the base name and source to the full name
         foreach($sr in $MediaResources)
         {
-            if($sr.Extension -in $imageFileTypes){ $fragment += "<Image x:Key=`"$($sr.BaseName)`" Source=`"$($sr.FullName)`" />" }
-            if($sr.Extension -in $avFileTypes){ $fragment += "<MediaElement x:Key=`"$($sr.BaseName)`" Source=`"$($sr.FullName)`" />" }    
+            if($sr.Extension -in $imageFileTypes){ $fragment += "<BitmapImage x:Key=`"$($sr.BaseName)`" UriSource=`"$($sr.FullName)`" />" }
+            if($sr.Extension -in $avFileTypes){ 
+                $uri = [System.Uri]::new($sr.FullName)
+                $fragment += "<sys:Uri x:Key=`"$($sr.BaseName)`">$uri</sys:Uri>" 
+            }    
         }
 
         # if the document doesn't already have a "Window.Resources" close it
