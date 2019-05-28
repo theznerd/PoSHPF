@@ -234,4 +234,4 @@ function Start-BackgroundScriptBlock($scriptBlock){
 ############################
 ###### DISPLAY DIALOG ######
 ############################
-[void]$formMainWindow.ShowDialog()
+#[void]$formMainWindow.ShowDialog()
