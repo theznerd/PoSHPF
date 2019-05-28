@@ -128,7 +128,7 @@ foreach($x in $vx)
         $cname = "form$($x)Control$(($_.Name -replace $xp, ''))"
         Set-Variable -Name "$cname" -Value $SyncClass.SyncHash."form$($x)".FindName($_.Name) #create a variale to hold the control/object
         $controls += (Get-Variable -Name "form$($x)Control$($_.Name)").Name #add the control name to our array
-        $SyncClass.SyncHash.Add((Get-Variable -Name "$cname").Name, $SyncClass.SyncHash."form$($x)".FindName($_.Name)) #add the control directly to the hashtable
+        $SyncClass.SyncHash.Add($cname, $SyncClass.SyncHash."form$($x)".FindName($_.Name)) #add the control directly to the hashtable
     }
 }
 
