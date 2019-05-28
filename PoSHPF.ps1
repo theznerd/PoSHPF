@@ -1,7 +1,7 @@
 # Grab all resources (MahApps, etc), all XAML files, and any potential static resources
 $Global:resources = Get-ChildItem -Path "$PSScriptRoot\Resources\*.dll" -ErrorAction SilentlyContinue
 $Global:XAML = Get-ChildItem -Path "$PSScriptRoot\XAML\*.xaml" -ErrorAction SilentlyContinue
-$Global:StaticResources = Get-ChildItem -Path "$PSScriptRoot\StaticResources" -ErrorAction SilentlyContinue
+$Global:MediaResources = Get-ChildItem -Path "$PSScriptRoot\Media" -ErrorAction SilentlyContinue
 
 # This class allows the synchronized hashtable to be available across threads,
 # but also passes a couple of methods along with it to do GUI things via the
@@ -59,11 +59,11 @@ foreach($x in $XAML) {
 }
 
 #######################
-## Add Static Resources
+## Add Media Resources
 #######################
 $imageFileTypes = @(".jpg",".bmp",".gif",".tif",".png") # Supported image filetypes
 $avFileTypes = @(".mp3",".wav",".wmv") # Supported audio/visual filetypes
-if($StaticResources.Count -gt 0){
+if($MediaResources.Count -gt 0){
     ## Okay... the following code is just silly. I know
     ## but hear me out. Adding the nodes to the elements
     ## directly caused big issues - mainly surrounding the
@@ -80,7 +80,7 @@ if($StaticResources.Count -gt 0){
         }
         
         # Add each StaticResource with the key of the base name and source to the full name
-        foreach($sr in $StaticResources)
+        foreach($sr in $MediaResources)
         {
             if($sr.Extension -in $imageFileTypes){ $fragment += "<Image x:Key=`"$($sr.BaseName)`" Source=`"$($sr.FullName)`" />" }
             if($sr.Extension -in $avFileTypes){ $fragment += "<MediaElement x:Key=`"$($sr.BaseName)`" Source=`"$($sr.FullName)`" />" }    
@@ -234,4 +234,4 @@ function Start-BackgroundScriptBlock($scriptBlock){
 ############################
 ###### DISPLAY DIALOG ######
 ############################
-#[void]$formMainWindow.ShowDialog()
+[void]$formMainWindow.ShowDialog()
