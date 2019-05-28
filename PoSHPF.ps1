@@ -35,8 +35,8 @@ foreach($dll in $resources) { [System.Reflection.Assembly]::LoadFrom("$($dll.Ful
 ##############
 ## Import XAML
 ##############
-$xp = '[^a-zA-Z_]' # All characters that are not a-Z or _
-$vx = @()          # An array of XAML files loaded
+$xp = '[^a-zA-Z_0-9]' # All characters that are not a-Z, 0-9, or _
+$vx = @()             # An array of XAML files loaded
 
 foreach($x in $XAML) { 
     # Items from XAML that are known to cause issues
@@ -120,13 +120,15 @@ foreach($x in $vx)
 ## Create Controls (Buttons, etc)
 #################################
 $controls = @()
+$xp = '[^a-zA-Z_0-9]' # All characters that are not a-Z, 0-9, or _
 foreach($x in $vx)
 {
     $xaml = (Get-Variable -Name "xaml$($x)").Value #load the xaml we created earlier
     $xaml.SelectNodes("//*[@Name]") | %{ #find all nodes with a "Name" attribute
-        Set-Variable -Name "form$($x)Control$($_.Name)" -Value $SyncClass.SyncHash."form$($x)".FindName($_.Name) #create a variale to hold the control/object
+        $cname = "form$($x)Control$(($_.Name -replace $xp, ''))"
+        Set-Variable -Name "$cname" -Value $SyncClass.SyncHash."form$($x)".FindName($_.Name) #create a variale to hold the control/object
         $controls += (Get-Variable -Name "form$($x)Control$($_.Name)").Name #add the control name to our array
-        $SyncClass.SyncHash.Add((Get-Variable -Name "form$($x)Control$($_.Name)").Name, $SyncClass.SyncHash."form$($x)".FindName($_.Name)) #add the control directly to the hashtable
+        $SyncClass.SyncHash.Add((Get-Variable -Name "$cname").Name, $SyncClass.SyncHash."form$($x)".FindName($_.Name)) #add the control directly to the hashtable
     }
 }
 
