@@ -1,3 +1,4 @@
+# PoSHPF - Version 1.0
 # Grab all resources (MahApps, etc), all XAML files, and any potential static resources
 $Global:resources = Get-ChildItem -Path "$PSScriptRoot\Resources\*.dll" -ErrorAction SilentlyContinue
 $Global:XAML = Get-ChildItem -Path "$PSScriptRoot\XAML\*.xaml" -ErrorAction SilentlyContinue
