@@ -1,4 +1,4 @@
-# PoSHPF - Version 1.0
+# PoSHPF - Version 1.1
 # Grab all resources (MahApps, etc), all XAML files, and any potential static resources
 $Global:resources = Get-ChildItem -Path "$PSScriptRoot\Resources\*.dll" -ErrorAction SilentlyContinue
 $Global:XAML = Get-ChildItem -Path "$PSScriptRoot\XAML\*.xaml" -ErrorAction SilentlyContinue
@@ -242,3 +242,10 @@ function Start-BackgroundScriptBlock($scriptBlock){
 ###### DISPLAY DIALOG ######
 ############################
 #[void]$formMainWindow.ShowDialog()
+
+##########################
+##### SCRIPT CLEANUP #####
+##########################
+$jobCleanup.Flag = $false #Stop Cleaning Jobs
+$jobCleanup.PowerShell.Runspace.Close() #Close the runspace
+$jobCleanup.PowerShell.Dispose() #Remove the runspace from memory
