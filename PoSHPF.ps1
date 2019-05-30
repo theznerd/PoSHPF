@@ -1,4 +1,4 @@
-# PoSHPF - Version 1.1
+# PoSHPF - Version 1.2
 # Grab all resources (MahApps, etc), all XAML files, and any potential static resources
 $Global:resources = Get-ChildItem -Path "$PSScriptRoot\Resources\*.dll" -ErrorAction SilentlyContinue
 $Global:XAML = Get-ChildItem -Path "$PSScriptRoot\XAML\*.xaml" -ErrorAction SilentlyContinue
@@ -53,10 +53,10 @@ foreach($x in $XAML) {
     foreach($xtr in $xamlToRemove){ $xaml = $xaml -replace $xtr } # Remove items from $xamlToRemove
     
     # Create a new variable to store the XAML as XML
-    New-Variable -Name "xaml$(($x.BaseName) -replace $xp, '')" -Value ($xaml -as [xml]) -Force
+    New-Variable -Name "xaml$(($x.BaseName) -replace $xp, '_')" -Value ($xaml -as [xml]) -Force
     
     # Add XAML to list of XAML documents processed
-    $vx += "$(($x.BaseName) -replace $xp, '')"
+    $vx += "$(($x.BaseName) -replace $xp, '_')"
 }
 
 #######################
@@ -64,6 +64,7 @@ foreach($x in $XAML) {
 #######################
 $imageFileTypes = @(".jpg",".bmp",".gif",".tif",".png") # Supported image filetypes
 $avFileTypes = @(".mp3",".wav",".wmv") # Supported audio/visual filetypes
+$xp = '[^a-zA-Z_0-9]' # All characters that are not a-Z, 0-9, or _
 if($MediaResources.Count -gt 0){
     ## Okay... the following code is just silly. I know
     ## but hear me out. Adding the nodes to the elements
@@ -86,10 +87,11 @@ if($MediaResources.Count -gt 0){
         # Add each StaticResource with the key of the base name and source to the full name
         foreach($sr in $MediaResources)
         {
-            if($sr.Extension -in $imageFileTypes){ $fragment += "<BitmapImage x:Key=`"$($sr.BaseName)`" UriSource=`"$($sr.FullName)`" />" }
+            $srname = "$($sr.BaseName -replace $xp, '_')$($sr.Extension.Substring(1).ToUpper())" #convert name to basename + Uppercase Extension
+            if($sr.Extension -in $imageFileTypes){ $fragment += "<BitmapImage x:Key=`"$srname`" UriSource=`"$($sr.FullName)`" />" }
             if($sr.Extension -in $avFileTypes){ 
                 $uri = [System.Uri]::new($sr.FullName)
-                $fragment += "<sys:Uri x:Key=`"$($sr.BaseName)`">$uri</sys:Uri>" 
+                $fragment += "<sys:Uri x:Key=`"$srname`">$uri</sys:Uri>" 
             }    
         }
 
@@ -132,7 +134,7 @@ foreach($x in $vx)
 {
     $xaml = (Get-Variable -Name "xaml$($x)").Value #load the xaml we created earlier
     $xaml.SelectNodes("//*[@Name]") | %{ #find all nodes with a "Name" attribute
-        $cname = "form$($x)Control$(($_.Name -replace $xp, ''))"
+        $cname = "form$($x)Control$(($_.Name -replace $xp, '_'))"
         Set-Variable -Name "$cname" -Value $SyncClass.SyncHash."form$($x)".FindName($_.Name) #create a variale to hold the control/object
         $controls += (Get-Variable -Name "form$($x)Control$($_.Name)").Name #add the control name to our array
         $SyncClass.SyncHash.Add($cname, $SyncClass.SyncHash."form$($x)".FindName($_.Name)) #add the control directly to the hashtable
@@ -168,7 +170,7 @@ foreach($x in $vx)
     }
     if($carray.Count -gt 0)
     {
-        New-Variable -Name "form$($x)PoSHPFCleanupAudio" -Value $carray # Store the controls in an array to be accessed later
+        New-Variable -Name "form$($x)PoSHPFCleanupAudio" -Value $carray -Force # Store the controls in an array to be accessed later
         $syncClass.SyncHash."form$($x)".Add_Closed({
             foreach($c in (Get-Variable "form$($x)PoSHPFCleanupAudio").Value)
             {
