@@ -153,12 +153,28 @@ if($controls.Count -gt 0){
 #######################
 ## DISABLE A/V AUTOPLAY
 #######################
-foreach($c in $controls)
+foreach($x in $vx)
 {
-    if($SyncClass.SyncHash.$c.GetType().Name -eq "MediaElement") #find all controls with the type MediaElement
+    $carray = @()
+    $fts = $syncClass.SyncHash."form$($x)"
+    foreach($c in $fts.Content.Children)
     {
-        $SyncClass.SyncHash.$c.LoadedBehavior = "Manual" #Don't autoplay
-        $SyncClass.SyncHash.$c.UnloadedBehavior = "Stop" #When the window closes, stop the music
+        if($c.GetType().Name -eq "MediaElement") #find all controls with the type MediaElement
+        {
+            $c.LoadedBehavior = "Manual" #Don't autoplay
+            $c.UnloadedBehavior = "Stop" #When the window closes, stop the music
+            $carray += $c #add the control to an array
+        }
+    }
+    if($carray.Count -gt 0)
+    {
+        New-Variable -Name "form$($x)PoSHPFCleanupAudio" -Value $carray # Store the controls in an array to be accessed later
+        $syncClass.SyncHash."form$($x)".Add_Closed({
+            foreach($c in (Get-Variable "form$($x)PoSHPFCleanupAudio").Value)
+            {
+                $c.Source = $null #stops any currently playing media
+            }
+        })
     }
 }
 
