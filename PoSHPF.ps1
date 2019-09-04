@@ -1,4 +1,4 @@
-# PoSHPF - Version 1.2
+# PoSHPF - Version 2.0
 # Grab all resources (MahApps, etc), all XAML files, and any potential static resources
 $Global:resources = Get-ChildItem -Path "$PSScriptRoot\Resources\*.dll" -ErrorAction SilentlyContinue
 $Global:XAML = Get-ChildItem -Path "$PSScriptRoot\XAML\*.xaml" -ErrorAction SilentlyContinue
@@ -19,7 +19,8 @@ class SyncClass
     
     # method to update GUI - pass object name, property and value   
     [void]UpdateElement($object,$property,$value){ 
-        $this.SyncHash.$object.Dispatcher.Invoke([action]{ $this.SyncHash.$object.$property = $value },"Normal") 
+        $ueName = "$($object)POSHPFProperty$property"
+        $this.SyncHash.$ueName = $value
     } 
 }
 $Global:SyncClass = [SyncClass]::new() # create a new instance of this SyncClass to use.
@@ -140,6 +141,22 @@ foreach($x in $vx)
         $SyncClass.SyncHash.Add($cname, $SyncClass.SyncHash."form$($x)".FindName($_.Name)) #add the control directly to the hashtable
     }
 }
+
+############################
+## UI DISPATCHER REPLACEMENT
+############################
+$uiDispatcherReplacementScriptBlock = {
+    $propertyVariables = $SyncClass.SyncHash.Keys | Where-Object {$_ -like "*POSHPFProperty*"}
+    foreach($pv in $propertyVariables)
+    {
+        $pvSplit = $pv -Split "POSHPFProperty"
+        $SyncClass.SyncHash.($pvSplit[0]).($pvSplit[1]) = $SyncClass.SyncHash.$pv
+    }
+}
+$timer = New-Object System.Windows.Threading.DispatcherTimer
+$timer.Interval = [timespan]"0:0:0.01"
+$timer.Add_Tick($uiDispatcherReplacementScriptBlock)
+$timer.Start()
 
 ############################
 ## FORMS AND CONTROLS OUTPUT
